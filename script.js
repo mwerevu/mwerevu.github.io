@@ -203,8 +203,8 @@ function fauxTerm(config) {
 }
 var myTerm = new fauxTerm({
   el: document.getElementById("term"),
-  cwd: "guest@dam.pe:/",
-  initialMessage: "Welcome to dam.pe!\n",
+  cwd: "XYZ:>",
+  initialMessage: "THIS IS NOT FOR YOU!\n",
   /*
   tags: ['red', 'blue', 'white', 'bold'],
   maxBufferLength: 8192,
