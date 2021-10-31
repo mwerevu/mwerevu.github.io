@@ -214,10 +214,10 @@ var myTerm = new fauxTerm({
     return false;
   }*/
 });
-/* var mySecondTerm = new fauxTerm({
+var mySecondTerm = new fauxTerm({
   el: document.getElementById("term2"),
-  cwd: "guest@dam.pe:/",
-  initialMessage: "Welcome to dam.pe! 2\n",
+  cwd: "junk:",
+  initialMessage: "What?\n",
   /*
   autoFocus: false,
   tags: ['red', 'blue', 'white', 'bold'],
@@ -227,4 +227,4 @@ var myTerm = new fauxTerm({
     console.log(argv);
     return false;
   }*/
-}); */
+}); 
