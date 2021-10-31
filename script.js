@@ -203,7 +203,7 @@ function fauxTerm(config) {
 }
 var myTerm = new fauxTerm({
   el: document.getElementById("term"),
-  cwd: "XYZ:>",
+  cwd: "XYZ:",
   initialMessage: "THIS IS NOT FOR YOU!\n",
   /*
   tags: ['red', 'blue', 'white', 'bold'],
