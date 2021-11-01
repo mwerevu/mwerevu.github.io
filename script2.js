@@ -14,19 +14,19 @@ function fauxTerm(config) {
   var coreCmds = {
     "clear": clear
   };
-  
+    
   var fauxInput = document.createElement('textarea');
   fauxInput.className = "faux-input";
   document.body.appendChild(fauxInput);
   if ( autoFocus ) {
     fauxInput.focus();
   }
-
-
+  
+  
   function getLeader() {
     return cwd + "> ";
   }
-
+  
   function renderTerm() {
     var bell = '<span class="bell"></span>';
     var ob = termBuffer + getLeader() + lineBuffer;
@@ -34,10 +34,10 @@ function fauxTerm(config) {
     term.innerHTML += bell;
     term.scrollTop = term.scrollHeight;
   }
-  
+    
   function writeToBuffer(str) {
     termBuffer += str;
-    
+      
     //Stop the buffer getting massive.
     if ( termBuffer.length > maxBufferLength ) {
       var diff = termBuffer.length - maxBufferLength;
@@ -45,7 +45,7 @@ function fauxTerm(config) {
     }
     
   }
-  
+    
   function renderStdOut(str) {
     var i = 0, max = tags.length;
     for ( i; i<max; i++ ) {
@@ -56,72 +56,95 @@ function fauxTerm(config) {
     }
     return str;
   }
- 
+  function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+  }  
+
+
+  function typeStdOut(str) {
+    var index = 0;
+    var newLineCharacter="\n"
+    var timePerLetter=200
+    var printNextLetter = function() {
+      if (index < str.length) {
+        var CHAR = str[index];
+  
+        switch(CHAR) {
+          case newLineCharacter:
+            stdout = renderStdOut("<br>");
+            break;
+          default:
+            stdout = renderStdOut(CHAR);
+            break;
+        }
+        
+        index++;
+
+        writeToBuffer(stdout);
+        renderTerm();
+        setTimeout(printNextLetter, timePerLetter);
+      }
+    }
+  
+    printNextLetter();
+  }
+
   function clear(argv, argc) {
     termBuffer = "";
     return "";
   }
-  
+    
   function isCoreCommand(line) {
     if ( coreCmds.hasOwnProperty(line) ) {
       return true;
     }
     return false;
   }
-  
-  function coreCommand(argv, argc) {
     
+  function coreCommand(argv, argc) {
+      
     var cmd = argv[0];
     return coreCmds[cmd](argv, argc);
-    
+      
   }
+  
 
-
-  // Original line processing code. Do not change.
+  // New line processing code so we can leave the original unchanged.
   function processLine() {
-    
+
     //Dispatch command
     var stdout, line = lineBuffer, argv = line.split(" "), argc = argv.length;
-    
+      
     var cmd = argv[0];
-    
+      
     lineBuffer += "\n";
     writeToBuffer( getLeader() + lineBuffer );
     lineBuffer = "";
-     
-    //If it's not a blank line.
-    if ( cmd !== "" ) {
-      
-      //If the command is not registered by the core.
-      if ( !isCoreCommand(cmd) ) {
-        
-        //User registered command
-        if ( processCommand ) {
-          stdout = processCommand(argv,argc);
-        } else {
-          stdout = "{white}{bold}" + cmd + "{/bold}{/white}: command not found\n";
-        }
-      } else {
-        //Execute a core command
-        stdout = coreCommand(argv,argc);
-      }
-
-      //If an actual command happened.
-      if ( stdout === false ) {
-        stdout = "{white}{bold}" + cmd + "{/bold}{/white}: command not found\n";
-      }
-    
-      stdout = renderStdOut(stdout);
+  
+    stdout = renderStdOut("You");
+    writeToBuffer(stdout);
+    stdout = renderStdOut("wrote");
+    writeToBuffer(stdout);
+    for (let index = 0; index < argc; index++) {
+      const word = argv[index];
+      stdout = renderStdOut(word);
       writeToBuffer(stdout);
-      console.log(stdout);
-      
-      addLineToHistory(line);
-    
     }
+  
+    lineBuffer += "\n";
+    writeToBuffer( lineBuffer );
+    renderTerm()
+    typeStdOut("One letter at a time?")    
+    addLineToHistory(line);
 
     renderTerm();
   }
-  
+
+    
   function addLineToHistory(line) {
     commandHistory.unshift( line );
     currentCommandIndex = -1;
@@ -133,7 +156,7 @@ function fauxTerm(config) {
       console.log(commandHistory.length);
     }
   }
-  
+    
   function isInputKey(keyCode) {
     var inputKeyMap = [32,190,192,189,187,220,221,219,222,186,188,191];
     if ( inputKeyMap.indexOf(keyCode) > -1 ) {
@@ -141,19 +164,19 @@ function fauxTerm(config) {
     }
     return false;
   }
-  
-  function toggleCommandHistory(direction) {
     
+  function toggleCommandHistory(direction) {
+      
     var max = commandHistory.length -1;
     var newIndex = currentCommandIndex + direction;
-    
+      
     if ( newIndex < -1 ) newIndex = -1;
     if ( newIndex >= commandHistory.length) newIndex = commandHistory.length -1;
-    
+      
     if ( newIndex !== currentCommandIndex ) {
       currentCommandIndex = newIndex;
     }
-    
+      
     if ( newIndex > -1 ) {
       //Change line to something from history.
       lineBuffer = commandHistory[newIndex];
@@ -161,15 +184,15 @@ function fauxTerm(config) {
       //Blank line...
       lineBuffer = "";
     }
-    
-    
+      
+      
   }
-
+ 
   function acceptInput(e) {
     e.preventDefault();
-    
-     fauxInput.value = "";
-    
+      
+    fauxInput.value = "";
+      
     if ( e.keyCode >= 48 && e.keyCode <= 90 || isInputKey(e.keyCode) ) {
       if (! e.ctrlKey ) {
         //Character input
@@ -189,10 +212,10 @@ function fauxTerm(config) {
     else if ( e.key === "Backspace" ) {
       lineBuffer = lineBuffer.substr(0, lineBuffer.length -1);
     }
-
+  
     renderTerm();
   }
-
+  
   term.addEventListener('click', function(e){
     fauxInput.focus();
     term.classList.add('term-focus');
@@ -202,21 +225,22 @@ function fauxTerm(config) {
     term.classList.remove('term-focus');
   });
   renderTerm();
-  
+    
 }
-
-
-
-
-var myTerm = new fauxTerm({
-  el: document.getElementById("term"),
-  cwd: "XYZ:",
-  initialMessage: "DO NOT ENTER!\n",
-  tags: ['red', 'blue', 'white', 'bold'],
-  maxBufferLength: 8192,
-  maxCommandHistory: 500,
-  cmd: function(argv, argc) {
-    console.log(argv);
-    return false;
-  }
-});
+  
+  
+  
+  
+  var myTerm = new fauxTerm({
+    el: document.getElementById("term"),
+    cwd: "222:",
+    initialMessage: "222 - DO NOT ENTER!\n",
+    tags: ['red', 'blue', 'white', 'bold'],
+    maxBufferLength: 8192,
+    maxCommandHistory: 500,
+    cmd: function(argv, argc) {
+      console.log(argv);
+      return false;
+    }
+  });
+  

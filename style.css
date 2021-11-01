@@ -22,9 +22,9 @@ html, body {
 
 .term {
   background: #000;
-  width: 640px;
-  height: 480px;
-  color: #aaa;
+  width: 100%;
+  height: 100%;
+  color: rgb(41, 182, 13);
   font-family: Monaco, monospace;
   font-weight: 400;
   font-smooth: never;
@@ -37,12 +37,12 @@ html, body {
   line-height: 1.2em;
   overflow-y: scroll;
   position: relative;
-  color: #888;
+  color: rgb(41, 182, 13);
 }
 
 .term-focus {
   text-shadow: none;
-  color: #ccc;
+  color: rgb(41, 182, 13);
 }
 
 .term .red {
