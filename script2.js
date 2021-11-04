@@ -18,6 +18,7 @@ function fauxTerm(config) {
   var fauxInput = document.createElement('textarea');
   fauxInput.className = "faux-input";
   document.body.appendChild(fauxInput);
+
   if ( autoFocus ) {
     fauxInput.focus();
   }
@@ -27,10 +28,15 @@ function fauxTerm(config) {
     return cwd + "> ";
   }
   
-  function renderTerm() {
+  function renderBuffer() {
+    renderMsg(termBuffer)
+  }
+  function renderTerm(c) {
+    renderMsg(termBuffer + c + getLeader() + lineBuffer)
+  }
+  function renderMsg(msg) {
     var bell = '<span class="bell"></span>';
-    var ob = termBuffer + getLeader() + lineBuffer;
-    term.innerHTML = ob;
+    term.innerHTML = msg;
     term.innerHTML += bell;
     term.scrollTop = term.scrollHeight;
   }
@@ -64,11 +70,11 @@ function fauxTerm(config) {
     } while (currentDate - date < milliseconds);
   }  
 
-
-  function typeStdOut(str) {
+  // This function prints a text string one character at a time with a constant delay between characters.
+  async function typeStdOut(str) {
     var index = 0;
     var newLineCharacter="\n"
-    var timePerLetter=200
+    var timePerLetter=150
     var printNextLetter = function() {
       if (index < str.length) {
         var CHAR = str[index];
@@ -80,17 +86,26 @@ function fauxTerm(config) {
           default:
             stdout = renderStdOut(CHAR);
             break;
-        }
+        } 
         
         index++;
 
         writeToBuffer(stdout);
-        renderTerm();
+        renderBuffer();
         setTimeout(printNextLetter, timePerLetter);
+      } else {
+        //stdout="\n" + "[pNL]" + getLeader() + lineBuffer
+        //lineBuffer=""
+        //writeToBuffer(stdout);
+        //renderBuffer();
+        writeToBuffer("\n");
+        renderTerm("");
       }
     }
   
     printNextLetter();
+    
+    
   }
 
   function clear(argv, argc) {
@@ -114,34 +129,26 @@ function fauxTerm(config) {
   
 
   // New line processing code so we can leave the original unchanged.
-  function processLine() {
+  async function processLine() {
 
     //Dispatch command
     var stdout, line = lineBuffer, argv = line.split(" "), argc = argv.length;
       
     var cmd = argv[0];
-      
+    
+    // trick to replicate the exact line so we can appear to go to the next
     lineBuffer += "\n";
-    writeToBuffer( getLeader() + lineBuffer );
+    writeToBuffer(getLeader() + lineBuffer );
     lineBuffer = "";
-  
-    stdout = renderStdOut("You");
-    writeToBuffer(stdout);
-    stdout = renderStdOut("wrote");
-    writeToBuffer(stdout);
-    for (let index = 0; index < argc; index++) {
-      const word = argv[index];
-      stdout = renderStdOut(word);
-      writeToBuffer(stdout);
-    }
-  
-    lineBuffer += "\n";
-    writeToBuffer( lineBuffer );
-    renderTerm()
-    typeStdOut("One letter at a time?")    
+
+    //lineBuffer += "\n";
+    //writeToBuffer( lineBuffer );
+    //renderTerm()
+
+    await typeStdOut("One letter at a time?");
     addLineToHistory(line);
 
-    renderTerm();
+    //renderTerm();
   }
 
     
@@ -188,7 +195,7 @@ function fauxTerm(config) {
       
   }
  
-  function acceptInput(e) {
+  async function acceptInput(e) {
     e.preventDefault();
       
     fauxInput.value = "";
@@ -197,13 +204,21 @@ function fauxTerm(config) {
       if (! e.ctrlKey ) {
         //Character input
         lineBuffer += e.key;
+        renderTerm("");
       } else {
         //Hot key input? I.e Ctrl+C
       }
     } else if ( e.keyCode === 13 ) {
-      processLine();
+      if (await processLine()){
+      lineBuffer += "\n";
+      writeToBuffer(getLeader() + lineBuffer );
+      renderBuffer();
+      lineBuffer = "";
+      //renderTerm();
+      }
     } else if ( e.keyCode === 9 ) {
       lineBuffer += "\t";
+      renderTerm("");
     } else if ( e.keyCode === 38 ) {
       toggleCommandHistory(1);
     } else if ( e.keyCode === 40 ) {
@@ -211,9 +226,10 @@ function fauxTerm(config) {
     }
     else if ( e.key === "Backspace" ) {
       lineBuffer = lineBuffer.substr(0, lineBuffer.length -1);
+      renderTerm("");
     }
   
-    renderTerm();
+    //renderTerm();
   }
   
   term.addEventListener('click', function(e){
@@ -224,7 +240,7 @@ function fauxTerm(config) {
   fauxInput.addEventListener('blur', function(e){
     term.classList.remove('term-focus');
   });
-  renderTerm();
+  renderTerm("");
     
 }
   
@@ -238,6 +254,7 @@ function fauxTerm(config) {
     tags: ['red', 'blue', 'white', 'bold'],
     maxBufferLength: 8192,
     maxCommandHistory: 500,
+    autoFocus: true,
     cmd: function(argv, argc) {
       console.log(argv);
       return false;
