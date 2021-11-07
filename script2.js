@@ -53,8 +53,10 @@ function fauxTerm(config) {
   }
     
   function renderStdOut(str) {
+    // Replaces supported tags with the span class equivalent.
     var i = 0, max = tags.length;
     for ( i; i<max; i++ ) {
+      console.log(tags[i]);
       var start = new RegExp('{' + tags[i] + '}', 'g');
       var end = new RegExp('{/' + tags[i] + '}', 'g');
       str = str.replace(start, '<span class="' + tags[i] + '">');
@@ -71,25 +73,25 @@ function fauxTerm(config) {
   }  
 
   // This function prints a text string one character at a time with a constant delay between characters.
-  async function typeStdOut(str) {
+  function typeStdOut(str) {
     var index = 0;
     var newLineCharacter="\n"
     var timePerLetter=150
     var printNextLetter = function() {
       if (index < str.length) {
         var CHAR = str[index];
-  
+
         switch(CHAR) {
           case newLineCharacter:
             stdout = renderStdOut("<br>");
             break;
           default:
-            stdout = renderStdOut(CHAR);
+            stdout = renderStdOut("{red}{bold}" + CHAR + "{/bold}{/red}");
             break;
         } 
-        
+;
         index++;
-
+        
         writeToBuffer(stdout);
         renderBuffer();
         setTimeout(printNextLetter, timePerLetter);
@@ -251,7 +253,7 @@ function fauxTerm(config) {
     el: document.getElementById("term"),
     cwd: "222:",
     initialMessage: "222 - DO NOT ENTER!\n",
-    tags: ['red', 'blue', 'white', 'bold'],
+    tags: ['red','blue','white', 'bold'],
     maxBufferLength: 8192,
     maxCommandHistory: 500,
     autoFocus: true,
